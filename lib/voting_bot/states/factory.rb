@@ -8,6 +8,9 @@ module VotingBot
         when "idle" then Idle.new
         when "awaiting_question" then AwaitingQuestion.new
         when "awaiting_options" then AwaitingOptions.new
+        when "awaiting_poll_settings" then AwaitingPollSettings.new
+        when "awaiting_correct_answers" then AwaitingCorrectAnswers.new
+        when "awaiting_deadline" then AwaitingDeadline.new
         when "awaiting_vote_choice" then AwaitingVoteChoice.new
         else
           Idle.new

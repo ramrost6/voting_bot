@@ -18,7 +18,10 @@ module VotingBot
           "awaiting_options",
           {
             "draft_question" => question,
-            "draft_options" => []
+            "draft_options" => [],
+            "draft_settings" => Models::PollRecord::DEFAULT_SETTINGS.each_with_object({}) do |(key, value), memo|
+              memo[key] = value.is_a?(Array) ? value.dup : value
+            end
           }
         )
 

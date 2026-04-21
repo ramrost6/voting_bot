@@ -8,7 +8,7 @@ module VotingBot
       def handle
         if update.command?
           return cancel if update.command_name == "cancel"
-          return finalize_poll if update.command_name == "done"
+          return proceed_to_settings if update.command_name == "done"
         end
 
         question = session.data.fetch("draft_question")
@@ -27,7 +27,7 @@ module VotingBot
             "Вариант добавлен: #{option_text}",
             "Сейчас вариантов: #{options.size}",
             current_options_text(options),
-            "Отправьте ещё вариант или /done для завершения."
+            "Отправьте ещё вариант или /done для перехода к настройкам."
           ].join("\n")
         )
       end
@@ -37,27 +37,17 @@ module VotingBot
         reply("Создание опроса отменено.")
       end
 
-      def finalize_poll
-        question = session.data.fetch("draft_question")
+      def proceed_to_settings
         options = Array(session.data["draft_options"])
-
         raise ArgumentError, "Нужно минимум 2 варианта ответа." if options.size < 2
 
-        poll = store.create_poll(
-          question: question,
-          options: options,
-          creator_id: update.user_id
-        )
-
-        session.reset!
+        session.transition_to("awaiting_poll_settings", draft_payload)
 
         reply(
           [
-            "Опрос создан.",
-            "ID: #{poll.id}",
-            "Вопрос: #{poll.question}",
-            "Команда для голосования: /vote #{poll.id}"
-          ].join("\n")
+            "Варианты сохранены. Теперь можно настроить опрос перед публикацией.",
+            settings_menu_text
+          ].join("\n\n")
         )
       end
 

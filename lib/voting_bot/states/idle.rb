@@ -28,15 +28,18 @@ module VotingBot
         when "vote"
           poll = store.find_poll(parse_poll_id(update.arguments))
           raise ArgumentError, "Опрос не найден." unless poll
+          return reply("Опрос ##{poll.id} уже закрыт.\n\n#{results_text(poll)}") if poll.closed?
 
           session.transition_to("awaiting_vote_choice", {"poll_id" => poll.id})
-          reply(
-            [
-              "Вы выбрали опрос ##{poll.id}: #{poll.question}",
-              "Отправьте номер варианта или его текст:",
-              format_options(poll)
-            ].join("\n")
-          )
+
+          lines = [
+            "Вы выбрали опрос ##{poll.id}: #{poll.question}",
+            vote_prompt_text(poll),
+            format_options(poll)
+          ]
+          lines << "Повторная отправка ответа заменит предыдущий выбор." if poll.allow_vote_change?
+          lines << "Чтобы предложить новый вариант, отправьте сообщение в формате +Новый вариант." if poll.allow_option_addition?
+          reply(lines.join("\n"))
         when "cancel"
           reply("Сейчас нет активного сценария для отмены.")
         else
@@ -48,8 +51,10 @@ module VotingBot
         "Я работаю с командами.\n\n#{help_text}"
       end
 
-      def format_options(poll)
-        poll.options.each_with_index.map { |option, index| "#{index + 1}. #{option}" }.join("\n")
+      def vote_prompt_text(poll)
+        return "Отправьте номера или тексты вариантов через запятую:" if poll.multiple_answers?
+
+        "Отправьте номер варианта или его текст:"
       end
     end
   end

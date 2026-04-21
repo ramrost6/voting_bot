@@ -22,12 +22,13 @@ module VotingBot
         session
       end
 
-      def create_poll(question:, options:, creator_id:)
+      def create_poll(question:, options:, creator_id:, settings: {})
         poll = Models::PollRecord.new(
           id: next_poll_id,
           creator_id: creator_id,
           question: question,
-          options: options
+          options: options,
+          settings: settings
         )
 
         @data["polls"][poll.id.to_s] = poll.to_h
